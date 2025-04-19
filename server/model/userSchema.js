@@ -22,7 +22,7 @@ const userSchema = new Schema({
         type: String,
     },
     forgotPasswordToken: {
-        type: date,
+        type: Date,
     }
 }, {
     timestamps: true
