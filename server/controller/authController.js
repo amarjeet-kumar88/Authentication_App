@@ -1,6 +1,7 @@
 const userModel = require("../model/userSchema");
 const emailValidator = require('email-validator');
 
+
 const signup = async (req, res, next) => {
     const { name, email, password, confirmPassword } = req.body;
 
@@ -49,6 +50,51 @@ const signup = async (req, res, next) => {
     
 }
 
+const signin = async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: 'Every field is required'
+        });
+    }
+
+    try {
+        const user = await userModel.findOne({ email }).select('+password');
+
+        if (!user || user.password !== password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid credentials'
+            });
+        }
+
+        const token = user.jwtToken(); // ✅ Now this works
+
+        user.password = undefined;
+
+        res.cookie("token", token, {
+            maxAge: 24 * 60 * 60 * 1000,
+            httpOnly: true
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: user
+        });
+
+    } catch (e) {
+        return res.status(400).json({
+            success: false,
+            data: e.message
+        });
+    }
+};
+
+
 module.exports = {
-    signup
+    signup,
+    signin
+
 }
